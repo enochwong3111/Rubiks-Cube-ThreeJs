@@ -1,4 +1,4 @@
-var COLOR = {
+window.COLOR = {
     "front": 0x0ED100,
     "back": 0x00A9F1,
     "right": 0xEA3135,
@@ -20,6 +20,11 @@ var TASK = {
     ROTATE_CUBE: 0,
     RESTORE_CUBE_GROUP: 1
 }
+var unitBoxColor = 0x000000;
+window.unitBoxMaterial = new THREE.MeshBasicMaterial({color: unitBoxColor});
+window.unitBoxGeometry = new THREE.BoxGeometry(cubeWidth, cubeWidth, cubeWidth);
+window.planeGeometry = new THREE.BufferGeometry();
+window.dummyBoxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
 // actionQueue.register(TASK.ROTATE_CUBE, {"cube": cube, "axis": "x", "index": 0, "direction": "Cw"});
 // actionQueue.register(TASK.ROTATE_CUBE, {"cube": cube, "axis": "y", "index": 1, "direction": "CCw"});

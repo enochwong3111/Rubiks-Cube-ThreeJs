@@ -2,29 +2,16 @@ class BoxUnit {
     //props
     #group;
 
-    constructor (id, width, scene, color=0x000000) {
+    constructor (id, width, scene) {
         this.id = id;
         this.width = width;
         this.#group = new THREE.Group();
-        let geometry = new THREE.BoxGeometry(width, width, width);
-        let material = new THREE.MeshBasicMaterial({color: color});
-        let box = new THREE.Mesh( geometry, material );
+        let box = new THREE.Mesh( unitBoxGeometry, unitBoxMaterial );
         this.#group.add(box);
         scene.add(this.#group);
     }
 
-    addColorPlane (points, color) {
-        let geometryPlane = new THREE.BufferGeometry();
-        let verticesPlane = new Float32Array(points);
-
-        geometryPlane.setAttribute('position', new THREE.BufferAttribute(verticesPlane, 3));
-
-        let materialPlane = new THREE.MeshLambertMaterial({
-            color: color,
-            side: THREE.DoubleSide,
-        });
-
-        geometryPlane.computeVertexNormals(); //Important!!, fail to render the plane if no this
+    addPlane (geometryPlane, materialPlane) {
         let plane = new THREE.Mesh(geometryPlane, materialPlane);
         this.#group.add(plane);
     }

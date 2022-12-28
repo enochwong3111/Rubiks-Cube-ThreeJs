@@ -17,8 +17,12 @@ class Cube {
     #boxUpPlanePoints = [];
     #boxDownPlanePoints = [];
     #rotateGroup;
+    #rotateGroupFillingBox;
     
-    constructor (id, size, scene, color=0x000000) {
+    constructor (id, size, scene) {
+        if (size < 2) {
+            size = 2;
+        }
         this.id = id;
         this.size = size;
         this.#group = new THREE.Group();
@@ -40,23 +44,31 @@ class Cube {
         this.constructPlaneIndex();
         this.constructPlanePoints ()
         let _this = this;
+
+        let rigetPlane = this.constructPlane(_this.#boxRightPlanePoints, COLOR["right"]);
+        let leftPlane = this.constructPlane(_this.#boxLeftPlanePoints, COLOR["left"]);
+        let upPlane = this.constructPlane(_this.#boxUpPlanePoints, COLOR["up"]);
+        let downPlane = this.constructPlane(_this.#boxDownPlanePoints, COLOR["down"]);
+        let frontPlane = this.constructPlane(_this.#boxFrontPlanePoints, COLOR["front"]);
+        let backPlane = this.constructPlane(_this.#boxBackPlanePoints, COLOR["back"]);
+
         this.#postiveXPlanes.forEach(function(i) {
-            _this.#children[i].addColorPlane(_this.#boxRightPlanePoints, COLOR["right"]);
+            _this.#children[i].addPlane(rigetPlane.geometry, rigetPlane.material);
         });
         this.#negtiveXPlanes.forEach(function(i) {
-            _this.#children[i].addColorPlane(_this.#boxLeftPlanePoints, COLOR["left"]);
+            _this.#children[i].addPlane(leftPlane.geometry, leftPlane.material);
         });
         this.#postiveYPlanes.forEach(function(i) {
-            _this.#children[i].addColorPlane(_this.#boxUpPlanePoints, COLOR["up"]);
+            _this.#children[i].addPlane(upPlane.geometry, upPlane.material);
         });
         this.#negtiveYPlanes.forEach(function(i) {
-            _this.#children[i].addColorPlane(_this.#boxDownPlanePoints, COLOR["down"]);
+            _this.#children[i].addPlane(downPlane.geometry, downPlane.material);
         });
         this.#postiveZPlanes.forEach(function(i) {
-            _this.#children[i].addColorPlane(_this.#boxFrontPlanePoints, COLOR["front"]);
+            _this.#children[i].addPlane(frontPlane.geometry, frontPlane.material);
         });
         this.#negtiveZPlanes.forEach(function(i) {
-            _this.#children[i].addColorPlane(_this.#boxBackPlanePoints, COLOR["back"]);
+            _this.#children[i].addPlane(backPlane.geometry, backPlane.material);
         });
         let index = 0;
         for(let y = 0; y < size; y++) {
@@ -69,6 +81,21 @@ class Cube {
                 }
             }
         }
+        this.#rotateGroupFillingBox = new THREE.Mesh(dummyBoxGeometry, unitBoxMaterial);
+    }
+
+    constructPlane(points, color) {
+        let geometryPlane = new THREE.BufferGeometry();
+        let verticesPlane = new Float32Array(points);
+
+        geometryPlane.setAttribute('position', new THREE.BufferAttribute(verticesPlane, 3));
+
+        let materialPlane = new THREE.MeshLambertMaterial({
+            color: color,
+            side: THREE.DoubleSide,
+        });
+        geometryPlane.computeVertexNormals(); //Important!!, fail to render the plane if no this
+        return {geometry: geometryPlane, material: materialPlane};
     }
 
     //get empty boxes
@@ -206,41 +233,6 @@ class Cube {
                 this.#negtiveZPlanes.push(posZ + sizeSquare - size);// (x+1) * sizeSquare -size + y = posZ + sizeSquare - size 
             }
         }
-        /* //object variable
-        var this.#postiveXPlanes = {}, this.#negtiveXPlanes = {}, this.#postiveYPlanes = {}, this.#negtiveYPlanes = {}, this.#postiveZPlanes = {}, this.#negtiveZPlanes = {};
-        let sizeSquare = size ** 2;
-        for (let y = 0; y < sizeSquare; y++) {
-            this.#postiveYPlanes[y] = 1;
-            let negX = y * size;
-            this.#negtiveXPlanes[negX] = 1; 
-            this.#postiveXPlanes[negX + size - 1] = 1;
-        }
-    
-        let negYRangeMin = sizeSquare * (size - 1), negYRangeMax = sizeSquare * size;
-        for (let y = negYRangeMin; y < negYRangeMax; y++) {
-            this.#negtiveYPlanes[y] = 1;
-        }
-    
-        let sizeMinus1 = size - 1;
-        for (let x = 0; x < size; x++) {
-            for (let y = 0; y < size; y++) {
-                let posZ = x * sizeSquare + y;
-                this.#postiveZPlanes[posZ] = 1;
-                this.#negtiveZPlanes[posZ + sizeSquare - size] = 1;// (x+1) * sizeSquare -size + y = posZ + sizeSquare - size 
-            }
-        }*/
-        // console.log("this.#postiveXPlanes");
-        // console.log(this.#postiveXPlanes);
-        // console.log("this.#negtiveXPlanes");
-        // console.log(this.#negtiveXPlanes);
-        // console.log("this.#postiveYPlanes");
-        // console.log(this.#postiveYPlanes);
-        // console.log("this.#negtiveYPlanes");
-        // console.log(this.#negtiveYPlanes);
-        // console.log("this.#postiveZPlanes");
-        // console.log(this.#postiveZPlanes);
-        // console.log("this.#negtiveZPlanes");
-        // console.log(this.#negtiveZPlanes);
     }
 
     //get position
@@ -254,117 +246,6 @@ class Cube {
         let bZ = (m - z) * d;
         this.#children[index].setPosition(bX, bY, bZ);
     }
-
-    /*
-    //get rotate operator
-    constructRotateOperator_old () {
-        let s = this.size;
-        // let sizeSqure = s ** 2;
-
-        this.#rotateOperator = {
-            "x" : {
-                "Cw": [],
-                "CCw": [],
-                "base": []
-            },
-            "y" : {
-                "Cw": [],
-                "CCw": [],
-                "base": []
-            },
-            "z" : {
-                "Cw": [],
-                "CCw": [],
-                "base": []
-            }
-        };
-
-        //construct Y clockwise(Cw)
-        for (let y = 0; y < s; y++) {
-            let operator = [];
-            let base = [];
-            for (let z = 0; z < s; z++) {
-                for (let x = 0; x < s; x++) {
-                    let oIndex = (y * s + 1 + x) * s - 1 - z; // = y * sizeSqure + s - 1 - z + x * s;
-                    let bIndex = x + s *(z + s * y); // = x + s * z + s ** 2 * y
-                    operator.push(oIndex);
-                    base.push(bIndex);
-                }
-            }
-            this.#rotateOperator.y.Cw.push(operator);
-            this.#rotateOperator.y.base.push(base);
-        }
-
-        //construct Y counter clockwise(CCw)
-        for (let y = 0; y < s; y++) {
-            let operator = [];
-            for (let z = 0; z < s; z++) {
-                for (let x = 0; x < s; x++) {
-                    let index = (y * s + s - 1 - x) * s + z; //  = y * sizeSqure + (s - 1) * s + z - x * s;
-                    operator.push(index);
-                }
-            }
-            this.#rotateOperator.y.CCw.push(operator);
-        }
-
-        //construct X clockwise(Cw)
-        for (let x = 0; x < s; x++) {
-            let operator = [];
-            let base = [];
-            for (let y = 0; y < s; y++) {
-                for (let z = 0; z < s; z++) {
-                    // let index = (s - y - 1) * s + z * sizeSqure + x;
-                    let index = (s - y - 1 + z * s) * s + x;
-                    let bIndex = x + s *(z + s * y);
-                    operator.push(index);
-                    base.push(bIndex);
-                }
-            }
-            this.#rotateOperator.x.Cw.push(operator);
-            this.#rotateOperator.x.base.push(base);
-        }
-        //construct X counter clockwise(CCw)
-        for (let x = 0; x < s; x++) {
-            let operator = [];
-            for (let y = 0; y < s; y++) {
-                for (let z = 0; z < s; z++) {
-                    // let index = s * ((s - 1) * s + y) - z * sizeSqure + x;
-                    let index = s * ((s - 1 - z) * s + y) + x;
-                    operator.push(index);
-                }
-            }
-            this.#rotateOperator.x.CCw.push(operator);
-        }
-
-        //construct Z clockwise(Cw)
-        for (let z = 0; z < s; z++) {
-            let operator = [];
-            let base = [];
-            for (let y = 0; y < s; y++) {
-                for (let x = 0; x < s; x++) {
-                    // let index = (s - 1) * sizeSqure + s * z + y - sizeSqure * x;
-                    let index = ((s - x - 1) * s + z) * s + y;
-                    let bIndex = x + s *(z + s * y);
-                    operator.push(index);
-                    base.push(bIndex);
-                }
-            }
-            this.#rotateOperator.z.Cw.push(operator);
-            this.#rotateOperator.z.base.push(base);
-        }
-        //construct Z counter clockwise(CCw)
-        for (let z = 0; z < s; z++) {
-            let operator = [];
-            for (let y = 0; y < s; y++) {
-                for (let x = 0; x < s; x++) {
-                    // let index = sizeSqure * x + s - 1 + s * z - y;
-                    let index = (x * s + z + 1) * s - y - 1;
-                    operator.push(index);
-                }
-            }
-            this.#rotateOperator.z.CCw.push(operator);
-        }
-    }*/
 
     //get rotate operator
     constructRotateOperator () {
@@ -582,6 +463,7 @@ class Cube {
     //rotate fucntion
     rotate (axis, index, direction) {
         let cube = this;
+
         // console.log("origin: " + cube.#childrenIndex.join());
         let operators = this.#rotateOperator[axis];
         // console.log(JSON.stringify(this.#rotateOperator));
@@ -597,6 +479,30 @@ class Cube {
         originalPosition.forEach(function(indexOri, curIndex) {
             cube.#childrenIndex[indexOri] = originalSeq[rotateOperator[curIndex]];
         });
+
+        if (index === 0 || index === cube.size - 1) {
+            //no need to show the filling box
+            return;
+        }
+
+        var fillingObjectSize = (cube.size - 2) * cubeWidth + (cube.size - 3) * cubeBoxGap;
+        let fx = fillingObjectSize, fy = fillingObjectSize, fz = fillingObjectSize;
+        let px = 0, py = 0, pz = 0;
+        if (axis === "x") {
+            fx = cubeWidth;
+            px = rotateGroup.children[0].position.x;
+        } else if (axis === "y") {
+            fy = cubeWidth;
+            py = rotateGroup.children[0].position.y;
+        } else {
+            fz = cubeWidth;
+            pz = rotateGroup.children[0].position.z;
+        }
+        cube.#rotateGroupFillingBox.scale.x = fx;
+        cube.#rotateGroupFillingBox.scale.y = fy;
+        cube.#rotateGroupFillingBox.scale.z = fz;
+        cube.#rotateGroupFillingBox.position.set(px, py, pz);
+        rotateGroup.add(cube.#rotateGroupFillingBox);
         // console.log('newSeq: ' + cube.#childrenIndex.join());
         // console.log("cur: " + cube.#childrenIndex.join());
         // console.log(this.#group.children);
@@ -605,7 +511,10 @@ class Cube {
     //restore main group children list
     restoreChildList () {
         let cube = this;
-        let rotateGroupChildren = this.#rotateGroup.children.concat();
+        let rGroup = cube.#rotateGroup;
+        rGroup.remove(cube.#rotateGroupFillingBox);
+        // cube.#rotateGroupFillingBox.dispose();
+        let rotateGroupChildren = rGroup.children.concat();
         rotateGroupChildren.forEach(function(child) {
             let worldPosition = new THREE.Vector3();
             let quaternion = new THREE.Quaternion()
@@ -617,9 +526,7 @@ class Cube {
         });
         // console.log(cube.#group.children);
         // console.log(cube.#rotateGroup.children);
-        cube.#group.parent.remove(cube.#rotateGroup);
-        cube.#rotateGroup = new THREE.Group();
-        cube.#group.parent.add(cube.#rotateGroup);
+        rGroup.rotation.x = rGroup.rotation.y = rGroup.rotation.z = 0;
     }
 
     rotateGroup (x, y, z) {
