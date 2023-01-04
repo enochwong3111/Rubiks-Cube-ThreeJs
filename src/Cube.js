@@ -53,22 +53,22 @@ class Cube {
         let backPlane = this.constructPlane(_this.#boxBackPlanePoints, COLOR["back"]);
 
         this.#postiveXPlanes.forEach(function(i) {
-            _this.#children[i].addPlane(rigetPlane.geometry, rigetPlane.material);
+            _this.#children[i].addPlane(rigetPlane.geometry, rigetPlane.material, {"y": 1, "z": 1});
         });
         this.#negtiveXPlanes.forEach(function(i) {
-            _this.#children[i].addPlane(leftPlane.geometry, leftPlane.material);
+            _this.#children[i].addPlane(leftPlane.geometry, leftPlane.material, {"y": 1, "z": 1});
         });
         this.#postiveYPlanes.forEach(function(i) {
-            _this.#children[i].addPlane(upPlane.geometry, upPlane.material);
+            _this.#children[i].addPlane(upPlane.geometry, upPlane.material, {"x": 1, "z": 1});
         });
         this.#negtiveYPlanes.forEach(function(i) {
-            _this.#children[i].addPlane(downPlane.geometry, downPlane.material);
+            _this.#children[i].addPlane(downPlane.geometry, downPlane.material, {"x": 1, "z": 1});
         });
         this.#postiveZPlanes.forEach(function(i) {
-            _this.#children[i].addPlane(frontPlane.geometry, frontPlane.material);
+            _this.#children[i].addPlane(frontPlane.geometry, frontPlane.material, {"x": 1, "y": 1});
         });
         this.#negtiveZPlanes.forEach(function(i) {
-            _this.#children[i].addPlane(backPlane.geometry, backPlane.material);
+            _this.#children[i].addPlane(backPlane.geometry, backPlane.material, {"x": 1, "y": 1});
         });
         let index = 0;
         for(let y = 0; y < size; y++) {
@@ -90,10 +90,7 @@ class Cube {
 
         geometryPlane.setAttribute('position', new THREE.BufferAttribute(verticesPlane, 3));
 
-        let materialPlane = new THREE.MeshLambertMaterial({
-            color: color,
-            side: THREE.DoubleSide,
-        });
+        let materialPlane = new THREE.MeshLambertMaterial({color: color});
         geometryPlane.computeVertexNormals(); //Important!!, fail to render the plane if no this
         return {geometry: geometryPlane, material: materialPlane};
     }
@@ -124,7 +121,7 @@ class Cube {
         let inner_y = inner_x;
         let outer_x = cubeWidth * (pWidthRatio + extraWidthRatio) / 2;
         let outer_y = outer_x;
-        let points = [
+        let postivePoints = [
             //1st(front) down right
             -inner_x, -inner_y, outer_z,
             inner_x, -inner_y, outer_z,
@@ -176,23 +173,43 @@ class Cube {
             inner_x, -inner_y, outer_z
         ];
 
+        let negativePoints = [];
+
         let planes = {};
-        planes["front"] = points;
-        var arrSize = points.length;
+        planes["front"] = postivePoints;
+        var arrSize = postivePoints.length;
         var directions = ["back", "right", "left", "up", "down"];
+        var postiveDirections = ["right", "up"];
+        var negativeDirections = ["back", "left", "down"];
 
         directions.forEach(function(direction){
             planes[direction] = [];
         });
 
-        for (let i = 0; i < arrSize; i+=3) {
-            let x_tmp = points[i], y_tmp = points[i + 1], z_tmp = points[i + 2];
-            directions.forEach(function(direction){
+        //construct negative points for reverted planes
+        for (let i = 0; i < arrSize; i += 9){
+            negativePoints = negativePoints.concat([
+                postivePoints[i + 6], postivePoints[i + 7], postivePoints[i + 8],
+                postivePoints[i + 3], postivePoints[i + 4], postivePoints[i + 5],
+                postivePoints[i], postivePoints[i + 1], postivePoints[i + 2]
+            ]);
+        }
+
+        for (let i = 0; i < arrSize; i += 3) {
+            let x_tmp = postivePoints[i], y_tmp = postivePoints[i + 1], z_tmp = postivePoints[i + 2];
+            postiveDirections.forEach(function(direction){
                 planes[direction] = planes[direction].concat(rotateFn[direction](x_tmp, y_tmp, z_tmp));
             });
         }
 
-        this.#boxFrontPlanePoints = points;
+        for (let i = 0; i < arrSize; i+=3) {
+            let x_tmp = negativePoints[i], y_tmp = negativePoints[i + 1], z_tmp = negativePoints[i + 2];
+            negativeDirections.forEach(function(direction){
+                planes[direction] = planes[direction].concat(rotateFn[direction](x_tmp, y_tmp, z_tmp));
+            });
+        }
+
+        this.#boxFrontPlanePoints = planes.front;
         this.#boxBackPlanePoints = planes.back;
         this.#boxRightPlanePoints = planes.right;
         this.#boxLeftPlanePoints = planes.left;
@@ -225,7 +242,6 @@ class Cube {
             this.#negtiveYPlanes.push(y);
         }
     
-        let sizeMinus1 = size - 1;
         for (let x = 0; x < size; x++) {
             for (let y = 0; y < size; y++) {
                 let posZ = x * sizeSquare + y;
@@ -472,7 +488,9 @@ class Cube {
         let rotateGroup = this.#rotateGroup;
         // console.log(rotateGroup);
         originalPosition.forEach(function(index) {
-            cube.#children[cube.#childrenIndex[index]].assignGroup(rotateGroup);
+            let childBox = cube.#children[cube.#childrenIndex[index]];
+            childBox.updatePlaneMovableDirections(axis);
+            childBox.assignGroup(rotateGroup);
         });
         let originalSeq = cube.#childrenIndex.concat();
         // console.log('originalSeq: ' + originalSeq.join());
@@ -535,5 +553,19 @@ class Cube {
 
     getChildren () {
         return this.#children;
+    }
+
+    getGroup () {
+        return this.#group;
+    }
+
+    getRotationPlaneIndex(rotateAxis, boxIndex) {
+        let childIndex = this.#childrenIndex.indexOf(boxIndex);
+        let planeIndexes = this.#rotateOperator[rotateAxis].base;
+        for (let i = 0; i < planeIndexes.length; i++){
+            if (planeIndexes[i].indexOf(childIndex) > -1) {
+                return i;
+            }
+        }
     }
 }

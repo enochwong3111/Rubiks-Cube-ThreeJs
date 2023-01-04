@@ -1,12 +1,12 @@
 window.COLOR = {
-    "front": 0x0ED100,
-    "back": 0x00A9F1,
+    "front": 0xFDF02A,
+    "back": 0x0ED100,
     "right": 0xEA3135,
-    "left": 0xFDF02A,
-    "up": 0xFC8137,
-    "down": 0xEEEEEE,//0xDE2CE1
+    "left": 0xFC8137,
+    "up": 0x00A9F1,
+    "down": 0xEEEEEE,
 };
-
+var cube;
 var cubeWidth = 10;
 var cubeCenter = [0, 0, 0];
 var pWidthRatio = 0.85;
@@ -25,6 +25,9 @@ window.unitBoxMaterial = new THREE.MeshBasicMaterial({color: unitBoxColor});
 window.unitBoxGeometry = new THREE.BoxGeometry(cubeWidth, cubeWidth, cubeWidth);
 window.planeGeometry = new THREE.BufferGeometry();
 window.dummyBoxGeometry = new THREE.BoxGeometry(1, 1, 1);
+//prepare action queue
+window.actionQueue;
 
 // actionQueue.register(TASK.ROTATE_CUBE, {"cube": cube, "axis": "x", "index": 0, "direction": "Cw"});
 // actionQueue.register(TASK.ROTATE_CUBE, {"cube": cube, "axis": "y", "index": 1, "direction": "CCw"});
+

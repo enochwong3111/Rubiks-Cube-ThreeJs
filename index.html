@@ -10,65 +10,14 @@
 		<script src="src/ThreeJs/OrbitControls.js"></script>
 		<script src="src/config.js"></script>
 		<script src="src/supportFunction.js"></script>
+		<script src="src/init.js"></script>
 		<script src="src/BoxUnit.js"></script>
 		<script src="src/Cube.js"></script>
         <script src="src/ActionQueue.js"></script>
 	</head>
 	<body>
 		<script>
-
-			// Our Javascript will go here.
-            const scene = new THREE.Scene();
-            
-            // const near = 10;
-            // const far = 100;
-            // scene.fog = new THREE.Fog(0x141819, near, far);
-            // scene.fog = new THREE.FogExp2(0x141819, 0.03);
-            const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
-            const renderer = new THREE.WebGLRenderer();
-            renderer.setSize( window.innerWidth, window.innerHeight );
-            document.body.appendChild( renderer.domElement );
-
-            scene.background = new THREE.Color( 0xD2D2D2);
-
-            let cube = new Cube(0, cubeSize, scene);
-
-            // // LIGHTS
-            scene.add(new THREE.HemisphereLight(0xaaaaaa, 0x333333));
-
-            var keyLight = new THREE.PointLight(0xaaaaaa);
-            keyLight.position.x = 150;
-            keyLight.position.y = -100;
-            keyLight.position.z = 350;
-            scene.add(keyLight);
-
-            var rimLight = new THREE.PointLight(0x888888);
-            rimLight.position.x = 100;
-            rimLight.position.y = 100;
-            rimLight.position.z = -500;
-            scene.add(rimLight);
-
-            // var rimLight2 = new THREE.PointLight(0x888888);
-            // rimLight2.position.x = -100;
-            // rimLight2.position.y = -100;
-            // rimLight2.position.z = -100;
-            // scene.add(rimLight2);
-
-            const controls = new THREE.OrbitControls( camera, renderer.domElement );
-
-            //prepare action queue
-            var actionQueue = new ActionQueue(0);
-            
-            camera.position.set( 60, 60, 60 );
-            controls.update();
-            function animate() {
-                requestAnimationFrame( animate );
-                renderer.render( scene, camera );
-                actionQueue.processNext();
-
-            }
-            animate();
+            init();			
 		</script>
 	</body>
 </html>

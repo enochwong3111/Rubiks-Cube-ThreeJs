@@ -27,7 +27,7 @@ class ActionQueue {
                 //fps, perRotationTime
                 let framesNum = fps * perRotationTime;
                 let factor = (direction === "Cw")?1:-1;
-                if (rotateAxis === "y" || rotateAxis === "z") {//rotateAxis === "x" || 
+                if (rotateAxis === "y" || rotateAxis === "z") {
                     factor = -factor;
                 }
                 let finalRotatin = factor * Math.PI / 2;

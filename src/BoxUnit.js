@@ -6,22 +6,48 @@ class BoxUnit {
         this.id = id;
         this.width = width;
         this.#group = new THREE.Group();
-        let box = new THREE.Mesh( unitBoxGeometry, unitBoxMaterial );
+        let box = new THREE.Mesh(unitBoxGeometry, unitBoxMaterial);
+        box.userData.parentBox = this;
+        box.userData.isBox = true;
         this.#group.add(box);
         scene.add(this.#group);
     }
 
-    addPlane (geometryPlane, materialPlane) {
+    addPlane (geometryPlane, materialPlane, movableDirections) {
         let plane = new THREE.Mesh(geometryPlane, materialPlane);
+        plane.userData = {
+            "parentBox": this,
+            "isPlane": true,
+            "movableDirections": movableDirections
+        };
         this.#group.add(plane);
     }
 
-    setPosition (x, y, z) {
+    setPosition(x, y, z) {
         this.#group.position.set(x, y, z);
     }
 
-    assignGroup (group) {
+    getPosition() {
+        return this.#group.position;
+    }
+
+    assignGroup(group) {
         group.add(this.#group);
+    }
+
+    updatePlaneMovableDirections(rotateDirection) {
+        this.#group.children.forEach(function(object) {
+            if (object.userData.isPlane) {
+                let directions = object.userData.movableDirections;
+                if (directions[rotateDirection]) {
+                    let originDir = "[" + Object.keys(directions).sort().join('') + "]";
+                    let antiDir = "xyz".replace(new RegExp(originDir,"g"), "");
+                    object.userData.movableDirections = {};
+                    object.userData.movableDirections[rotateDirection] = 1;
+                    object.userData.movableDirections[antiDir] = 1;
+                }
+            }
+        });
     }
 
     get currentRotation () {
