@@ -1,21 +1,21 @@
 class Cube {
     //Props
     #group;
-    #childrenIndex = [];
-    #children = [];
-    #rotateOperator = {};
-    #postiveXPlanes = [];
-    #negtiveXPlanes = [];
-    #postiveYPlanes = [];
-    #negtiveYPlanes = [];
-    #postiveZPlanes = [];
-    #negtiveZPlanes = [];
-    #boxFrontPlanePoints = [];
-    #boxBackPlanePoints = [];
-    #boxRightPlanePoints = [];
-    #boxLeftPlanePoints = [];
-    #boxUpPlanePoints = [];
-    #boxDownPlanePoints = [];
+    #childrenIndex;
+    #children;
+    #rotateOperator;
+    #postiveXPlanes;
+    #negtiveXPlanes;
+    #postiveYPlanes;
+    #negtiveYPlanes;
+    #postiveZPlanes;
+    #negtiveZPlanes;
+    #boxFrontPlanePoints;
+    #boxBackPlanePoints;
+    #boxRightPlanePoints;
+    #boxLeftPlanePoints;
+    #boxUpPlanePoints;
+    #boxDownPlanePoints;
     #rotateGroup;
     #rotateGroupFillingBox;
     
@@ -23,6 +23,21 @@ class Cube {
         if (size < 2) {
             size = 2;
         }
+        this.#childrenIndex = [];
+        this.#children = [];
+        this.#rotateOperator = {};
+        this.#postiveXPlanes = [];
+        this.#negtiveXPlanes = [];
+        this.#postiveYPlanes = [];
+        this.#negtiveYPlanes = [];
+        this.#postiveZPlanes = [];
+        this.#negtiveZPlanes = [];
+        this.#boxFrontPlanePoints = [];
+        this.#boxBackPlanePoints = [];
+        this.#boxRightPlanePoints = [];
+        this.#boxLeftPlanePoints = [];
+        this.#boxUpPlanePoints = [];
+        this.#boxDownPlanePoints = [];
         this.id = id;
         this.size = size;
         this.#group = new THREE.Group();
@@ -476,33 +491,24 @@ class Cube {
         }
     }
 
-    //rotate fucntion
-    rotate (axis, index, direction) {
+    //construct rotation group
+    constructRotationGroup (axis, index) {
         let cube = this;
-
-        // console.log("origin: " + cube.#childrenIndex.join());
         let operators = this.#rotateOperator[axis];
-        // console.log(JSON.stringify(this.#rotateOperator));
         let originalPosition = operators.base[index];
-        let rotateOperator = operators[direction][index];
         let rotateGroup = this.#rotateGroup;
-        // console.log(rotateGroup);
         originalPosition.forEach(function(index) {
             let childBox = cube.#children[cube.#childrenIndex[index]];
             childBox.updatePlaneMovableDirections(axis);
             childBox.assignGroup(rotateGroup);
-        });
-        let originalSeq = cube.#childrenIndex.concat();
-        // console.log('originalSeq: ' + originalSeq.join());
-        originalPosition.forEach(function(indexOri, curIndex) {
-            cube.#childrenIndex[indexOri] = originalSeq[rotateOperator[curIndex]];
         });
 
         if (index === 0 || index === cube.size - 1) {
             //no need to show the filling box
             return;
         }
-
+        
+        //add filling box
         var fillingObjectSize = (cube.size - 2) * cubeWidth + (cube.size - 3) * cubeBoxGap;
         let fx = fillingObjectSize, fy = fillingObjectSize, fz = fillingObjectSize;
         let px = 0, py = 0, pz = 0;
@@ -521,9 +527,27 @@ class Cube {
         cube.#rotateGroupFillingBox.scale.z = fz;
         cube.#rotateGroupFillingBox.position.set(px, py, pz);
         rotateGroup.add(cube.#rotateGroupFillingBox);
-        // console.log('newSeq: ' + cube.#childrenIndex.join());
-        // console.log("cur: " + cube.#childrenIndex.join());
-        // console.log(this.#group.children);
+    }
+
+    updateChildrenIndexAfterRotation (axis, index, direction, rotateTimes = 1) {
+        let cube = this;
+        let operators = this.#rotateOperator[axis];
+        let originalPosition = operators.base[index];
+        let rotateOperator = operators[direction][index];
+        for (let i = 0; i < rotateTimes; i++) {
+            let originalSeq = cube.#childrenIndex.concat();
+            originalPosition.forEach(function(indexOri, curIndex) {
+                cube.#childrenIndex[indexOri] = originalSeq[rotateOperator[curIndex]];
+            });
+        }
+    }
+
+    //rotate fucntion
+    rotate (axis, index, direction = "Cw",) {
+        let cube = this;
+        let operators = this.#rotateOperator[axis];
+        let originalPosition = operators.base[index];
+        //
     }
 
     //restore main group children list
@@ -557,6 +581,10 @@ class Cube {
 
     getGroup () {
         return this.#group;
+    }
+
+    getRotationGroup () {
+        return this.#rotateGroup;
     }
 
     getRotationPlaneIndex(rotateAxis, boxIndex) {

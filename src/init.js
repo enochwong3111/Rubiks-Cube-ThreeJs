@@ -12,6 +12,7 @@ function init() {
     const clickStartP = new THREE.Vector3();
     var curIntersectPlane;
     var mouseMoved = false;
+    var rotatingAxis = null, rotatingPlaneIndex = null;
     // const near = 10;
     // const far = 100;
     // scene.fog = new THREE.Fog(0x141819, near, far);
@@ -46,21 +47,21 @@ function init() {
     // rimLight2.position.z = -100;
     // scene.add(rimLight2);
 
-    const controls = new THREE.OrbitControls( camera, renderer.domElement );
+    const orbitControls = new THREE.OrbitControls( camera, renderer.domElement );
 
     //prepare action queue
     actionQueue = new ActionQueue(0);
     
     camera.position.set(cubeWidth * cubeSize, cubeWidth * cubeSize, cubeWidth * cubeSize);
-    controls.update();
+    orbitControls.update();
     window.addEventListener('resize', onWindowResize);
 
     const mouseHelper = new THREE.Mesh(new THREE.BoxGeometry( 1, 1, 10 ), new THREE.MeshNormalMaterial());
     mouseHelper.visible = false;
     scene.add(mouseHelper);
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mouseup', onMouseUp);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('mousedown', onMouseDown);
+    renderer.domElement.addEventListener('mouseup', onMouseUp);
 
     const geometry = new THREE.BufferGeometry();
     geometry.setFromPoints( [ new THREE.Vector3(), new THREE.Vector3() ] );
@@ -69,10 +70,11 @@ function init() {
     scene.add( line );
 
     animate();
-    window.addEventListener('touchstart', onTouchStart);
-    window.addEventListener('touchend', onTouchEnd);
-    window.addEventListener('touchmove', onTounchMove);
+    renderer.domElement.addEventListener('touchstart', onTouchStart);
+    renderer.domElement.addEventListener('touchend', onTouchEnd);
+    renderer.domElement.addEventListener('touchmove', onTounchMove);
 
+    initPanel();
     function animate() {
         requestAnimationFrame( animate );
         renderer.render( scene, camera );
@@ -87,38 +89,10 @@ function init() {
 
     function onPointerMove(event) {
         event.preventDefault();
-        if (event.buttons === 1 && !controls.enabled) {
+        if (event.buttons === 1 && !orbitControls.enabled && curIntersectPlane) {
             //with box clicked
             // console.log(curIntersectPlane);
             mouseMoved = true;
-            /*
-            mouse.x = getMousePositionX(event.clientX);
-            mouse.y = getMousePositionY(event.clientY);
-            raycaster.setFromCamera(mouse, camera);
-            let dx = raycaster.ray.direction.x - clickStartP.x;
-            let dy = raycaster.ray.direction.y - clickStartP.y;
-            let dz = raycaster.ray.direction.z - clickStartP.z;
-            let arr = [];
-            if (curIntersectPlane.movableDirections.x) {
-                arr.push({"d": "x", "v": dx, "absV": Math.abs(dx)});
-            }
-            if (curIntersectPlane.movableDirections.y) {
-                arr.push({"d": "y", "v": dy, "absV": Math.abs(dy)});
-            }
-            if (curIntersectPlane.movableDirections.z) {
-                arr.push({"d": "z", "v": dz, "absV": Math.abs(dz)});
-            }
-            arr.sort(function(a , b){
-                return b.absV - a.absV;
-            });
-            // console.log("dx: " + dx + ", dy: " + dy + ", dz: " + dz);
-            console.log("direction: " + arr[0].d + ", val: " + arr[0].v);
-            let rotateDir = (arr[0].v > 0)? "Cw": "CCw";
-            let rotateAxis = arr[1].d;
-            actionQueue.register(TASK.ROTATE_CUBE, {"cube": cube, "axis": rotateAxis, "index": 0, "direction": rotateDir});
-            // console.log(raycaster.ray);
-            // console.log(raycaster.ray.direction);
-            //raycaster.setFromCamera(mouse, camera);*/
         } else {
             mouseMoved = false;
         }
@@ -131,9 +105,9 @@ function init() {
 
     function onMouseUp(event) {
         event.preventDefault();
-        if (!controls.enabled && mouseMoved && curIntersectPlane) {
+        if (!orbitControls.enabled && mouseMoved && curIntersectPlane) {
             //with box clicked
-            console.log(curIntersectPlane);
+            //console.log(curIntersectPlane);            
             mouse.x = getMousePositionX(event.clientX);
             mouse.y = getMousePositionY(event.clientY);
             raycaster.setFromCamera(mouse, camera);
@@ -181,7 +155,9 @@ function init() {
             actionQueue.register(TASK.ROTATE_CUBE, {"cube": cube, "axis": rotateAxis, "index": rotateIndex, "direction": rotateDir});
         }
         mouseMoved = false;
-        controls.enabled = true;
+        orbitControls.enabled = true;
+        rotatingAxis = null;
+        rotatingPlaneIndex = null;
     }
 
     function onTouchStart(event) {
@@ -196,14 +172,11 @@ function init() {
         event.preventDefault();
         // console.log("onTounchMove!");
         // console.log(event);
-        if (!controls.enabled) {
+        if (!orbitControls.enabled) {
             //with box clicked
             // console.log(curIntersectPlane);
             mouseMoved = true;
         }
-        // else {
-        //     mouseMoved = false;
-        // }
     }
 
     function onTouchEnd(event) {
@@ -211,7 +184,7 @@ function init() {
         if (event.changedTouches.length === 1) {
             let touchPoint = event.changedTouches[0];
             // let result = getIntersction(touchPoint.pageX, touchPoint.pageY);
-            if (!controls.enabled && mouseMoved && curIntersectPlane) {
+            if (!orbitControls.enabled && mouseMoved && curIntersectPlane) {
                 //with box clicked
                 mouse.x = getMousePositionX(touchPoint.pageX);
                 mouse.y = getMousePositionY(touchPoint.pageY);
@@ -261,7 +234,7 @@ function init() {
             }
             mouseMoved = false;
         }
-        controls.enabled = true;
+        orbitControls.enabled = true;
     }
 
     function getIntersction(x, y) {
@@ -280,11 +253,15 @@ function init() {
                 clickStartP.y = raycaster.ray.direction.y;
                 clickStartP.z = raycaster.ray.direction.z;
                 curIntersectPlane = intersectObj;
-                controls.enabled = false;
+                orbitControls.enabled = false;
                 return;
             }
             else if (intersectObj.isBox) {
-                controls.enabled = false;
+                orbitControls.enabled = false;
+                console.log("intersect: point");
+                console.log(intersects[0].point);
+                console.log("parent position");
+                console.log(intersects[0].object.parent.position);
             }
         }
         curIntersectPlane = null;
@@ -296,5 +273,42 @@ function init() {
     
     function getMousePositionY(y){
         return -(y / window.innerHeight) * 2 + 1;
+    }
+
+    function initPanel() {
+        var sizeDropdown = $('#cubeSize');
+        var speedDropdown = $('#speed');
+        var mixUpBtn = $('[btn-for="mixUpCube"]');
+        var restoreBtn = $('[btn-for="restoreCube"]');
+        sizeDropdown.empty();
+        speedDropdown.empty();
+        availableCubeSize.forEach(function(size) {
+            sizeDropdown.append($('<option value="' + size + '"></option>').text(size + ' X ' + size));
+        });
+        availableSpeed.forEach(function(speed) {
+            speedDropdown.append($('<option value="' + speed + '"></option>').text(speed));
+        });
+        speedDropdown.val(1 / perRotationTime);
+        sizeDropdown.val(cubeSize);
+
+        speedDropdown.off('change').change(function(){
+            var speed = $(this).val();
+            perRotationTime = 1 / speed;
+        });
+
+        sizeDropdown.off('change').change(function(){
+            var size = $(this).val();
+            location.href = location.pathname + "?size=" + size;
+        });
+        
+        mixUpBtn.click(function(e) {
+            e.stopPropagation();
+            actionQueue.register(TASK.MIX_UP_CUBE, {});
+        });
+        
+        restoreBtn.click(function(e) {
+            e.stopPropagation();
+            // actionQueue.register(TASK.MIX_UP_CUBE, {});
+        });
     }
 }

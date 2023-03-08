@@ -18,28 +18,38 @@ class ActionQueue {
     preprocess (task) {
         let taskType = task.type;
         let data = task.data;
+        let cube = data.cube;
+        let rotateAxis = data.axis;
+        let direction = data.direction;
+        let framesNum = parseInt(fps * perRotationTime);
+        let factor = (direction === "Cw")?1:-1;
+        let isMixingup = data.mixup;
+        if (rotateAxis === "y" || rotateAxis === "z") {
+            factor = -factor;
+        }
         switch (taskType) {
             case TASK.ROTATE_CUBE: 
-                let cube = data.cube;
-                let rotateAxis = data.axis;
-                let direction = data.direction;
-                cube.rotate(rotateAxis, data.index, direction);
-                //fps, perRotationTime
-                let framesNum = fps * perRotationTime;
-                let factor = (direction === "Cw")?1:-1;
-                if (rotateAxis === "y" || rotateAxis === "z") {
-                    factor = -factor;
-                }
+                cube.constructRotationGroup(rotateAxis, data.index);
+                cube.updateChildrenIndexAfterRotation(rotateAxis, data.index, direction);
                 let finalRotatin = factor * Math.PI / 2;
-                let rotateAngle = finalRotatin / framesNum;
-                let curAngle = rotateAngle;
-                for (let i = 2 ; i < framesNum; i++) {
-                    curAngle += rotateAngle;
-                    this.#processingTasks.push({"type": taskType, "axis": rotateAxis, "angle": curAngle, "cube": cube});
+                if (!isMixingup) {
+                    let rotateAngle = finalRotatin / framesNum;
+                    let curAngle = rotateAngle;
+                    for (let i = 2 ; i < framesNum; i++) {
+                        curAngle += rotateAngle;
+                        this.#processingTasks.push({"type": taskType, "axis": rotateAxis, "angle": curAngle, "cube": cube});
+                    }
+                    this.#processingTasks.push({"type": taskType, "axis": rotateAxis, "angle": finalRotatin, "cube": cube});
+                    this.#processingTasks.push({"type": TASK.RESTORE_CUBE_GROUP, "cube": cube});
+                    this.process({"type": taskType, "axis": rotateAxis, "angle": rotateAngle, "cube": cube});
                 }
-                this.#processingTasks.push({"type": taskType, "axis": rotateAxis, "angle": finalRotatin, "cube": cube});
-                this.#processingTasks.push({"type": TASK.RESTORE_CUBE_GROUP, "cube": cube});
-                this.process({"type": taskType, "axis": rotateAxis, "angle": rotateAngle, "cube": cube});
+                else {
+                    this.process({"type": taskType, "axis": rotateAxis, "angle": finalRotatin, "cube": cube});
+                    this.process({"type": TASK.RESTORE_CUBE_GROUP, "cube": cube});
+                }
+                break;
+            case TASK.MIX_UP_CUBE:
+                mixup();
                 break;
             default: 
                 break;
@@ -80,6 +90,10 @@ class ActionQueue {
             return;
         }
         task = this.#pendingTasks.shift();
+        while (task && task.data.mixup) {
+            this.preprocess(task);
+            task = this.#pendingTasks.shift();
+        }
         if (task) {
             this.preprocess(task);
             return;

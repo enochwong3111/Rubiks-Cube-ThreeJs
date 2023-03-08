@@ -2,10 +2,39 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>My first three.js app</title>
+		<title>Magic Cube</title>
 		<style>
 			body { margin: 0; }
+			.panel {
+				width: 250px;
+				height: 200px;
+				position: absolute;
+				top: 0px;
+				background-color: rgba(256,256,256,0.9);
+				font-size: xx-large;
+				padding: 5px;
+			}
+			.panel table {
+				width: 100%;
+			}
+			.panel table tr td:nth-child(1) {
+				width: 30%;
+			}
+			.panel table tr td select {
+				width: 100%;
+				font-size: xx-large;
+			}
+			.panel button {
+				font-size: xx-large;
+				width: 60%;
+				float: right;
+			}
+			.panel .btnDiv {
+				padding: 5px;
+				display: flow-root;
+			}
 		</style>
+		<script src="src/jquery-3.6.2.min.js"></script>
 		<script src="src/ThreeJs/three.js"></script>
 		<script src="src/ThreeJs/OrbitControls.js"></script>
 		<script src="src/config.js"></script>
@@ -17,7 +46,39 @@
 	</head>
 	<body>
 		<script>
-            init();			
+			$(function(){
+				init();
+			});	
 		</script>
+		<div class="panel">
+			<table>
+				<tbody>
+					<tr>
+						<td>Size:</td>
+						<td>
+							<select id="cubeSize">
+								<option value="2">2 X 2</option>
+								<option value="3">3 X 3</option>
+								<option value="4">4 X 4</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>Speed:</td>
+						<td>
+							<select id="speed">
+								<option value="0.5">0.5</option>
+								<option value="1">1</option>
+								<option value="2">2</option>
+								<option value="3">3</option>
+								<option value="4">4</option>
+							</select>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="btnDiv"><button btn-for="mixUpCube">Mix up!</button></div>
+			<div class="btnDiv"><button btn-for="restoreCube">Restore</button></div>
+		</div>
 	</body>
 </html>
