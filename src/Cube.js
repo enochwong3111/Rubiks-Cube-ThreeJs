@@ -4,18 +4,6 @@ class Cube {
     #childrenIndex;
     #children;
     #rotateOperator;
-    #postiveXPlanes;
-    #negtiveXPlanes;
-    #postiveYPlanes;
-    #negtiveYPlanes;
-    #postiveZPlanes;
-    #negtiveZPlanes;
-    #boxFrontPlanePoints;
-    #boxBackPlanePoints;
-    #boxRightPlanePoints;
-    #boxLeftPlanePoints;
-    #boxUpPlanePoints;
-    #boxDownPlanePoints;
     #rotateGroup;
     #rotateGroupFillingBox;
     
@@ -26,18 +14,6 @@ class Cube {
         this.#childrenIndex = [];
         this.#children = [];
         this.#rotateOperator = {};
-        this.#postiveXPlanes = [];
-        this.#negtiveXPlanes = [];
-        this.#postiveYPlanes = [];
-        this.#negtiveYPlanes = [];
-        this.#postiveZPlanes = [];
-        this.#negtiveZPlanes = [];
-        this.#boxFrontPlanePoints = [];
-        this.#boxBackPlanePoints = [];
-        this.#boxRightPlanePoints = [];
-        this.#boxLeftPlanePoints = [];
-        this.#boxUpPlanePoints = [];
-        this.#boxDownPlanePoints = [];
         this.id = id;
         this.size = size;
         this.#group = new THREE.Group();
@@ -56,33 +32,33 @@ class Cube {
         scene.add(this.#group);
         scene.add(this.#rotateGroup);
         this.constructRotateOperator();
-        this.constructPlaneIndex();
-        this.constructPlanePoints ()
+        let planeIndexes = this.constructPlaneIndex();
+        let planePoints = this.constructPlanePoints();
         let _this = this;
 
-        let rigetPlane = this.constructPlane(_this.#boxRightPlanePoints, COLOR["right"]);
-        let leftPlane = this.constructPlane(_this.#boxLeftPlanePoints, COLOR["left"]);
-        let upPlane = this.constructPlane(_this.#boxUpPlanePoints, COLOR["up"]);
-        let downPlane = this.constructPlane(_this.#boxDownPlanePoints, COLOR["down"]);
-        let frontPlane = this.constructPlane(_this.#boxFrontPlanePoints, COLOR["front"]);
-        let backPlane = this.constructPlane(_this.#boxBackPlanePoints, COLOR["back"]);
+        let rigetPlane = this.constructPlane(planePoints.right, COLOR["right"]);
+        let leftPlane = this.constructPlane(planePoints.left, COLOR["left"]);
+        let upPlane = this.constructPlane(planePoints.up, COLOR["up"]);
+        let downPlane = this.constructPlane(planePoints.down, COLOR["down"]);
+        let frontPlane = this.constructPlane(planePoints.front, COLOR["front"]);
+        let backPlane = this.constructPlane(planePoints.back, COLOR["back"]);
 
-        this.#postiveXPlanes.forEach(function(i) {
+        planeIndexes.postiveX.forEach(function(i) {
             _this.#children[i].addPlane(rigetPlane.geometry, rigetPlane.material, {"y": 1, "z": 1});
         });
-        this.#negtiveXPlanes.forEach(function(i) {
+        planeIndexes.negtiveX.forEach(function(i) {
             _this.#children[i].addPlane(leftPlane.geometry, leftPlane.material, {"y": 1, "z": 1});
         });
-        this.#postiveYPlanes.forEach(function(i) {
+        planeIndexes.postiveY.forEach(function(i) {
             _this.#children[i].addPlane(upPlane.geometry, upPlane.material, {"x": 1, "z": 1});
         });
-        this.#negtiveYPlanes.forEach(function(i) {
+        planeIndexes.negtiveY.forEach(function(i) {
             _this.#children[i].addPlane(downPlane.geometry, downPlane.material, {"x": 1, "z": 1});
         });
-        this.#postiveZPlanes.forEach(function(i) {
+        planeIndexes.postiveZ.forEach(function(i) {
             _this.#children[i].addPlane(frontPlane.geometry, frontPlane.material, {"x": 1, "y": 1});
         });
-        this.#negtiveZPlanes.forEach(function(i) {
+        planeIndexes.negtiveZ.forEach(function(i) {
             _this.#children[i].addPlane(backPlane.geometry, backPlane.material, {"x": 1, "y": 1});
         });
         let index = 0;
@@ -239,12 +215,14 @@ class Cube {
             });
         }
 
-        this.#boxFrontPlanePoints = planes.front;
-        this.#boxBackPlanePoints = planes.back;
-        this.#boxRightPlanePoints = planes.right;
-        this.#boxLeftPlanePoints = planes.left;
-        this.#boxUpPlanePoints = planes.up;
-        this.#boxDownPlanePoints = planes.down;
+        return {
+            front: planes.front,
+            back: planes.back,
+            right: planes.right,
+            left: planes.left,
+            up: planes.up,
+            down: planes.down
+        };
     }
 
     constructPlaneIndex () {
@@ -260,25 +238,34 @@ class Cube {
         //function scope variables
         let size = this.size;
         let sizeSquare = size ** 2;
+        let postiveYPlanes = [], negtiveYPlanes=[], negtiveXPlanes=[], postiveXPlanes=[], postiveZPlanes=[], negtiveZPlanes=[];
         for (let y = 0; y < sizeSquare; y++) {
-            this.#postiveYPlanes.push(y);
+            postiveYPlanes.push(y);
             let negX = y * size;
-            this.#negtiveXPlanes.push(negX);
-            this.#postiveXPlanes.push(negX + size - 1);
+            negtiveXPlanes.push(negX);
+            postiveXPlanes.push(negX + size - 1);
         }
     
         let negYRangeMin = sizeSquare * (size - 1), negYRangeMax = sizeSquare * size;
         for (let y = negYRangeMin; y < negYRangeMax; y++) {
-            this.#negtiveYPlanes.push(y);
+            negtiveYPlanes.push(y);
         }
     
         for (let x = 0; x < size; x++) {
             for (let y = 0; y < size; y++) {
                 let posZ = x * sizeSquare + y;
-                this.#postiveZPlanes.push(posZ);
-                this.#negtiveZPlanes.push(posZ + sizeSquare - size);// (x+1) * sizeSquare -size + y = posZ + sizeSquare - size 
+                postiveZPlanes.push(posZ);
+                negtiveZPlanes.push(posZ + sizeSquare - size);// (x+1) * sizeSquare -size + y = posZ + sizeSquare - size 
             }
         }
+        return {
+            postiveX: postiveXPlanes,
+            negtiveX: negtiveXPlanes,
+            postiveY: postiveYPlanes,
+            negtiveY: negtiveYPlanes,
+            postiveZ: postiveZPlanes,
+            negtiveZ: negtiveZPlanes
+        };
     }
 
     //get position
