@@ -1,22 +1,11 @@
 function init() {
-    // Our Javascript will go here.
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    const intersection = {
-        intersects: false,
-        point: new THREE.Vector3(),
-        normal: new THREE.Vector3()
-    };
     const clickStartP = new THREE.Vector3();
     var curIntersectPlane;
     var mouseMoved = false;
-    var rotatingAxis = null, rotatingPlaneIndex = null;
-    // const near = 10;
-    // const far = 100;
-    // scene.fog = new THREE.Fog(0x141819, near, far);
-    // scene.fog = new THREE.FogExp2(0x141819, 0.03);
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -26,7 +15,7 @@ function init() {
 
     cube = new Cube(0, cubeSize, scene);
 
-    // // LIGHTS
+    // LIGHTS
     scene.add(new THREE.HemisphereLight(0xaaaaaa, 0x333333));
 
     var keyLight = new THREE.PointLight(0xaaaaaa);
@@ -40,12 +29,6 @@ function init() {
     rimLight.position.y = 100;
     rimLight.position.z = -500;
     scene.add(rimLight);
-
-    // var rimLight2 = new THREE.PointLight(0x888888);
-    // rimLight2.position.x = -100;
-    // rimLight2.position.y = -100;
-    // rimLight2.position.z = -100;
-    // scene.add(rimLight2);
 
     const orbitControls = new THREE.OrbitControls( camera, renderer.domElement );
 
@@ -91,7 +74,6 @@ function init() {
         event.preventDefault();
         if (event.buttons === 1 && !orbitControls.enabled && curIntersectPlane) {
             //with box clicked
-            // console.log(curIntersectPlane);
             mouseMoved = true;
         } else {
             mouseMoved = false;
@@ -158,6 +140,7 @@ function init() {
         orbitControls.enabled = true;
         rotatingAxis = null;
         rotatingPlaneIndex = null;
+        // cube.restoreChildList();
     }
 
     function onTouchStart(event) {
@@ -183,7 +166,6 @@ function init() {
         event.preventDefault();
         if (event.changedTouches.length === 1) {
             let touchPoint = event.changedTouches[0];
-            // let result = getIntersction(touchPoint.pageX, touchPoint.pageY);
             if (!orbitControls.enabled && mouseMoved && curIntersectPlane) {
                 //with box clicked
                 mouse.x = getMousePositionX(touchPoint.pageX);
@@ -258,10 +240,10 @@ function init() {
             }
             else if (intersectObj.isBox) {
                 orbitControls.enabled = false;
-                console.log("intersect: point");
-                console.log(intersects[0].point);
-                console.log("parent position");
-                console.log(intersects[0].object.parent.position);
+                // console.log("intersect: point");
+                // console.log(intersects[0].point);
+                // console.log("parent position");
+                // console.log(intersects[0].object.parent.position);
             }
         }
         curIntersectPlane = null;
@@ -308,7 +290,7 @@ function init() {
         
         restoreBtn.click(function(e) {
             e.stopPropagation();
-            // actionQueue.register(TASK.MIX_UP_CUBE, {});
+            location.href = location.pathname + "?size=" + sizeDropdown.val();;
         });
     }
 }
