@@ -63,6 +63,10 @@ class ActionQueue {
 
     process (task) {
         let taskType = task.type;
+        let scene = null;
+        if (task.data && task.data.scene) {
+            scene = task.data.scene;
+        }
         switch (taskType) {
             case TASK.ROTATE_CUBE: 
                 let rotateAxis = task.axis;
@@ -83,9 +87,9 @@ class ActionQueue {
                 cube.restoreChildList();
                 break;
             case TASK.MIX_UP_CUBE:
-                cube.removeFromScene(task.data.scene);
+                cube.removeFromScene(scene);
                 cube = null;
-                cube = new Cube(0, cubeSize, task.data.scene);
+                cube = new Cube(0, cubeSize, scene);
                 mixup();
                 break;
             case TASK.RESTORE_CUBE:

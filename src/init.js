@@ -6,6 +6,10 @@ function init() {
     const clickStartP = new THREE.Vector3();
     var curIntersectPlane;
     var mouseMoved = false;
+    // const near = 10;
+    // const far = 100;
+    // scene.fog = new THREE.Fog(0x141819, near, far);
+    // scene.fog = new THREE.FogExp2(0x141819, 0.03);
 
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -29,6 +33,12 @@ function init() {
     rimLight.position.y = 100;
     rimLight.position.z = -500;
     scene.add(rimLight);
+
+    // var rimLight2 = new THREE.PointLight(0x888888);
+    // rimLight2.position.x = -100;
+    // rimLight2.position.y = -100;
+    // rimLight2.position.z = -100;
+    // scene.add(rimLight2);
 
     const orbitControls = new THREE.OrbitControls( camera, renderer.domElement );
 
@@ -74,7 +84,105 @@ function init() {
         event.preventDefault();
         if (event.buttons === 1 && !orbitControls.enabled && curIntersectPlane) {
             //with box clicked
+            // console.log(curIntersectPlane);
             mouseMoved = true;
+            /*
+            mouse.x = getMousePositionX(event.clientX);
+            mouse.y = getMousePositionY(event.clientY);
+            raycaster.setFromCamera(mouse, camera);
+            let dx = raycaster.ray.direction.x - clickStartP.x;
+            let dy = raycaster.ray.direction.y - clickStartP.y;
+            let dz = raycaster.ray.direction.z - clickStartP.z;
+            let movableDirections = curIntersectPlane.movableDirections;
+            // console.log("dx: " + dx + ", dy: " + dy + ", dz: " + dz);
+            if (!rotatingAxis) {
+                let arr = [];
+                if (movableDirections.x) {
+                    arr.push({"d": "x", "v": dx, "absV": Math.abs(dx)});
+                }
+                if (movableDirections.y) {
+                    arr.push({"d": "y", "v": dy, "absV": Math.abs(dy)});
+                }
+                if (movableDirections.z) {
+                    arr.push({"d": "z", "v": dz, "absV": Math.abs(dz)});
+                }
+                arr.sort(function(a , b){
+                    return b.absV - a.absV;
+                });
+                // console.log("dx: " + dx + ", dy: " + dy + ", dz: " + dz);
+                // console.log("direction: " + arr[0].d + ", val: " + arr[0].v);
+                let rotateAxis = arr[1].d;
+                rotatingAxis = arr[1].d;
+                /*
+                let rotateDir = (arr[0].v > 0)? 1: -1;
+                let planePostion = curIntersectPlane.parentBox.getPosition();
+                if (rotateAxis === "x") {
+                    if((movableDirections.y && planePostion.z > 0) || (movableDirections.z && planePostion.y < 0)){
+                        rotateDir = -rotateDir;
+                    }
+                }
+                else if (rotateAxis === "y") {
+                    if((movableDirections.z && planePostion.x < 0) || (movableDirections.x && planePostion.z > 0)){
+                        rotateDir = -rotateDir;
+                    }
+                }
+                else if (rotateAxis === "z") {
+                    if((movableDirections.y && planePostion.x > 0) || (movableDirections.x && planePostion.y < 0)){
+                        rotateDir = -rotateDir;
+                    }
+                }
+                rotateDir = (rotateDir === 1)? "Cw": "CCw";* /
+                let curBoxIndex = curIntersectPlane.parentBox.id;
+                //get Rotate plane index
+                let rotateIndex = cube.getRotationPlaneIndex(rotateAxis, curBoxIndex);
+                rotatingPlaneIndex = rotateIndex;
+                cube.constructRotationGroup(rotateAxis, rotateIndex);
+                // actionQueue.register(TASK.ROTATE_CUBE, {"cube": cube, "axis": rotateAxis, "index": rotateIndex, "direction": rotateDir});
+            }
+            let rotateDir = 1;
+            let planePostion = curIntersectPlane.parentBox.getPosition();
+            if (rotatingAxis === "x") {
+                if((movableDirections.y && planePostion.z > 0) || (movableDirections.z && planePostion.y < 0)){
+                    rotateDir = -rotateDir;
+                }
+            }
+            else if (rotatingAxis === "y") {
+                if((movableDirections.z && planePostion.x < 0) || (movableDirections.x && planePostion.z > 0)){
+                    rotateDir = -rotateDir;
+                }
+            }
+            else if (rotatingAxis === "z") {
+                if((movableDirections.y && planePostion.x > 0) || (movableDirections.x && planePostion.y < 0)){
+                    rotateDir = -rotateDir;
+                }
+            }
+            switch (rotatingAxis) {
+                case "x":
+                    if (movableDirections.y) {
+                        cube.rotateGroup(rotateDir * dy, 0, 0);
+                    }
+                    else if (movableDirections.z) {
+                        cube.rotateGroup(rotateDir * dz, 0, 0);
+                    }
+                    break;
+                case "y":
+                    if (movableDirections.x) {
+                        cube.rotateGroup(0, rotateDir * dx, 0);
+                    }
+                    else if (movableDirections.z) {
+                        cube.rotateGroup(0, rotateDir * dz, 0);
+                    }
+                    break;
+                case "z":
+                    if (movableDirections.x) {
+                        cube.rotateGroup(0, 0, rotateDir * dx);
+                    }
+                    else if (movableDirections.y) {
+                        cube.rotateGroup(0, 0, rotateDir * dy);
+                    }
+                    break;
+            }
+            */
         } else {
             mouseMoved = false;
         }
@@ -160,12 +268,16 @@ function init() {
             // console.log(curIntersectPlane);
             mouseMoved = true;
         }
+        // else {
+        //     mouseMoved = false;
+        // }
     }
 
     function onTouchEnd(event) {
         event.preventDefault();
         if (event.changedTouches.length === 1) {
             let touchPoint = event.changedTouches[0];
+            // let result = getIntersction(touchPoint.pageX, touchPoint.pageY);
             if (!orbitControls.enabled && mouseMoved && curIntersectPlane) {
                 //with box clicked
                 mouse.x = getMousePositionX(touchPoint.pageX);
