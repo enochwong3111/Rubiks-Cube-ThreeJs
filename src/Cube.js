@@ -99,6 +99,21 @@ class Cube {
         this.#rotateGroupFillingBox = new THREE.Mesh(dummyBoxGeometry, unitBoxMaterial);
     }
 
+    removeFromScene(scene) {
+        for (var i = this.#group.children.length - 1; i >= 0; i--) {
+            this.#group.remove(this.#group.children[i]);
+        }
+        for (var i = this.#children.length - 1; i >= 0; i--) {
+            if (!this.#children[i]) {
+                continue;
+            }
+            this.#children[i].removeFromScene(scene);
+            delete this.#children[i];
+        }
+        scene.remove(this.#group);
+        scene.remove(this.#rotateGroup);
+    }
+
     constructPlane(points, color) {
         let geometryPlane = new THREE.BufferGeometry();
         let verticesPlane = new Float32Array(points);

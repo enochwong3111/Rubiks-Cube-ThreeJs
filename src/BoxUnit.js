@@ -13,6 +13,18 @@ class BoxUnit {
         scene.add(this.#group);
     }
 
+    removeFromScene(scene) {
+        for (var i = this.#group.children.length - 1; i >= 0; i--) {
+            let child = this.#group.children[i];
+            if (child.userData.isPlane){
+                child.geometry.dispose();
+                child.material.dispose();
+            }
+            this.#group.remove(child);
+        }
+        scene.remove(this.#group);
+    }
+
     addPlane (geometryPlane, materialPlane, movableDirections) {
         let plane = new THREE.Mesh(geometryPlane, materialPlane);
         plane.userData = {

@@ -3,15 +3,23 @@ class ActionQueue {
     //#state;//0: idle, 1: processing
     #pendingTasks;
     #processingTasks;
+    #instantTasks;
 
     constructor (id) {
         this.id = id;
         // this.#state = 0;
         this.#pendingTasks = [];
         this.#processingTasks = [];
+        this.#instantTasks = [];
     }
 
     register (task, data) {
+        if ([TASK.MIX_UP_CUBE, TASK.RESTORE_CUBE].indexOf(task) > -1) {
+            this.#pendingTasks = [];
+            this.#processingTasks = [];
+            this.#instantTasks.push({"type": task, "data": data});
+            return;
+        }
         this.#pendingTasks.push({"type": task, "data": data});
     }
 
@@ -48,9 +56,6 @@ class ActionQueue {
                     this.process({"type": TASK.RESTORE_CUBE_GROUP, "cube": cube});
                 }
                 break;
-            case TASK.MIX_UP_CUBE:
-                mixup();
-                break;
             default: 
                 break;
         }
@@ -58,7 +63,6 @@ class ActionQueue {
 
     process (task) {
         let taskType = task.type;
-        let cube = task.cube;
         switch (taskType) {
             case TASK.ROTATE_CUBE: 
                 let rotateAxis = task.axis;
@@ -78,13 +82,29 @@ class ActionQueue {
             case TASK.RESTORE_CUBE_GROUP:
                 cube.restoreChildList();
                 break;
+            case TASK.MIX_UP_CUBE:
+                cube.removeFromScene(task.data.scene);
+                cube = null;
+                cube = new Cube(0, cubeSize, task.data.scene);
+                mixup();
+                break;
+            case TASK.RESTORE_CUBE:
+                cube.removeFromScene(scene);
+                cube = null;
+                cube = new Cube(0, cubeSize, scene);
+                break;
             default: 
                 break;
         }
     }
 
     processNext () {
-        let task = this.#processingTasks.shift();
+        let task = this.#instantTasks.shift();
+        if (task) {
+            this.process(task)
+            return;
+        }
+        task = this.#processingTasks.shift();
         if (task) {
             this.process(task)
             return;

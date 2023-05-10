@@ -279,18 +279,19 @@ function init() {
         });
 
         sizeDropdown.off('change').change(function(){
-            var size = $(this).val();
-            location.href = location.pathname + "?size=" + size;
+            cubeSize = parseInt($(this).val());
+            actionQueue.register(TASK.RESTORE_CUBE, {scene: scene});
+            camera.position.set(cubeWidth * cubeSize, cubeWidth * cubeSize, cubeWidth * cubeSize);
         });
         
         mixUpBtn.click(function(e) {
             e.stopPropagation();
-            actionQueue.register(TASK.MIX_UP_CUBE, {});
+            actionQueue.register(TASK.MIX_UP_CUBE, {scene: scene});
         });
         
         restoreBtn.click(function(e) {
             e.stopPropagation();
-            location.href = location.pathname + "?size=" + sizeDropdown.val();;
+            actionQueue.register(TASK.RESTORE_CUBE, {scene: scene});
         });
     }
 }
